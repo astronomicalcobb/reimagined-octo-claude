@@ -48,10 +48,15 @@ export class FirstPersonController {
       'capsule',
       { halfHeight: 0.5, radius: 0.3 }
     )
+
+    console.log('Player physics body created:', this.physicsBody ? 'SUCCESS' : 'FAILED')
   }
 
   update(deltaTime: number): void {
-    if (!this.physicsBody) return
+    if (!this.physicsBody) {
+      console.warn('No physics body for player')
+      return
+    }
 
     this.handleMouseLook()
     this.checkGrounded()
@@ -75,8 +80,8 @@ export class FirstPersonController {
   private handleMovement(deltaTime: number): void {
     const moveDirection = new THREE.Vector3()
 
-    if (this.inputManager.isKeyDown('KeyW')) moveDirection.z -= 1
-    if (this.inputManager.isKeyDown('KeyS')) moveDirection.z += 1
+    if (this.inputManager.isKeyDown('KeyW')) moveDirection.z += 1
+    if (this.inputManager.isKeyDown('KeyS')) moveDirection.z -= 1
     if (this.inputManager.isKeyDown('KeyA')) moveDirection.x -= 1
     if (this.inputManager.isKeyDown('KeyD')) moveDirection.x += 1
 
@@ -113,6 +118,8 @@ export class FirstPersonController {
     newPosition.x += this.velocity.x * deltaTime
     newPosition.y += this.velocity.y * deltaTime
     newPosition.z += this.velocity.z * deltaTime
+
+    newPosition.y = Math.max(0.5, newPosition.y)
 
     if (this.physicsBody) {
       this.physicsBody.setTranslation({ x: newPosition.x, y: newPosition.y, z: newPosition.z }, true)

@@ -147,13 +147,18 @@ export class PhysicsWorld {
 
     if (hit) {
       const hitPoint = ray.pointAt(hit.timeOfImpact)
-      return {
+      const result: { hit: boolean; point?: THREE.Vector3; normal?: THREE.Vector3; collider?: RAPIER.Collider; distance?: number } = {
         hit: true,
         point: new THREE.Vector3(hitPoint.x, hitPoint.y, hitPoint.z),
-        normal: new THREE.Vector3(hit.normal.x, hit.normal.y, hit.normal.z),
         collider: hit.collider,
         distance: hit.timeOfImpact
       }
+
+      if (hit.normal) {
+        result.normal = new THREE.Vector3(hit.normal.x, hit.normal.y, hit.normal.z)
+      }
+
+      return result
     }
 
     return { hit: false }

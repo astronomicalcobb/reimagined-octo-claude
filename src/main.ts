@@ -37,6 +37,9 @@ async function main() {
     )
     game.setPlayer(player)
 
+    console.log('Player created at position:', player.position)
+    console.log('Player controller:', player.controller)
+
     game.start()
 
     console.log('Game started successfully!')
