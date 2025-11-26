@@ -2,66 +2,55 @@ import * as THREE from 'three'
 import { EventEmitter } from '@utils/EventEmitter'
 
 export class DashAbility {
-  public cooldown: number = 5000
-  public dashForce: number = 15.0
-  public dashDuration: number = 200
-  private lastUsedTime: number = 0
-  private isDashing: boolean = false
-  private dashEndTime: number = 0
+  public dashDistance: number = 8.0
+  private hasBeenUsed: boolean = false
   public events: EventEmitter = new EventEmitter()
 
   update(deltaTime: number): void {
-    if (this.isDashing && Date.now() >= this.dashEndTime) {
-      this.isDashing = false
-      this.events.emit('dashEnd')
-    }
+    // No longer needed since dash is instant
   }
 
-  use(direction: THREE.Vector3, isGrounded: boolean, currentVelocity: THREE.Vector3): THREE.Vector3 | null {
-    if (!this.canUse() || !isGrounded) {
+  use(direction: THREE.Vector3): THREE.Vector3 | null {
+    if (!this.canUse()) {
       return null
     }
 
-    this.lastUsedTime = Date.now()
-    this.isDashing = true
-    this.dashEndTime = Date.now() + this.dashDuration
+    this.hasBeenUsed = true
 
-    const dashDirection = direction.clone().normalize()
+    const dashDirection = direction.clone()
     dashDirection.y = 0
 
     if (dashDirection.length() === 0) {
-      dashDirection.set(0, 0, -1)
+      dashDirection.set(0, 0, 1)
     } else {
       dashDirection.normalize()
     }
 
-    const dashVelocity = dashDirection.multiplyScalar(this.dashForce)
+    const dashOffset = dashDirection.multiplyScalar(this.dashDistance)
 
-    this.events.emit('dashStart', { direction: dashDirection })
+    this.events.emit('dashUsed', { direction: dashDirection })
 
-    return dashVelocity
+    return dashOffset
   }
 
   canUse(): boolean {
-    const timeSinceLastUse = Date.now() - this.lastUsedTime
-    return timeSinceLastUse >= this.cooldown
+    return !this.hasBeenUsed
   }
 
-  getRemainingCooldown(): number {
-    const timeSinceLastUse = Date.now() - this.lastUsedTime
-    return Math.max(0, this.cooldown - timeSinceLastUse)
+  reset(): void {
+    this.hasBeenUsed = false
+    this.events.emit('dashReset')
   }
 
   getCooldownPercentage(): number {
-    const remaining = this.getRemainingCooldown()
-    return (1 - remaining / this.cooldown) * 100
+    return this.hasBeenUsed ? 0 : 100
   }
 
   isOnCooldown(): boolean {
-    return !this.canUse()
+    return this.hasBeenUsed
   }
 
   getIsDashing(): boolean {
-    return this.isDashing
+    return false
   }
 }

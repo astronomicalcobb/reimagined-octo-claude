@@ -53,14 +53,21 @@ export class WeaponManager {
     )
 
     if (raycastResult.hit) {
+      const entityId = raycastResult.entityId
+      const entityType = this.determineEntityType(entityId)
+
       this.events.emit('hit', {
         weapon: data.weapon,
         damage: data.damage,
         point: raycastResult.point,
         normal: raycastResult.normal,
         collider: raycastResult.collider,
+        entityId: entityId,
+        entityType: entityType,
         attacker: this.ownerId
       })
+
+      console.log(`Hit detected: Entity ${entityId} (Type: ${entityType})`)
     }
 
     this.events.emit('weaponFired', {
@@ -69,6 +76,18 @@ export class WeaponManager {
       origin: data.origin,
       direction: data.direction
     })
+  }
+
+  private determineEntityType(entityId?: string): string {
+    if (!entityId) return 'environment'
+
+    if (entityId.startsWith('bot-')) return 'bot'
+    if (entityId.startsWith('player-')) return 'player'
+    if (entityId.startsWith('wall-') || entityId.startsWith('floor-') || entityId.startsWith('cover-')) {
+      return 'environment'
+    }
+
+    return 'unknown'
   }
 
   getCurrentWeapon(): Weapon {

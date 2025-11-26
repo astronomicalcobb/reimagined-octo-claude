@@ -7,6 +7,7 @@ import { EventEmitter } from '@utils/EventEmitter'
 import { Player } from '@entities/player/Player'
 import { Map } from '@world/Map'
 import { UIManager } from '@ui/UIManager'
+import { BotSpawner } from '@entities/bots/BotSpawner'
 
 export class Game {
   private static instance: Game
@@ -24,6 +25,7 @@ export class Game {
 
   public player: Player | null = null
   public currentMap: Map | null = null
+  public botSpawner: BotSpawner | null = null
 
   private constructor() {
     this.canvas = document.getElementById('game-canvas') as HTMLCanvasElement
@@ -95,6 +97,10 @@ export class Game {
       this.player.update(deltaTime)
     }
 
+    if (this.botSpawner) {
+      this.botSpawner.update(deltaTime)
+    }
+
     this.uiManager.update()
     this.inputManager.resetMouseDelta()
   }
@@ -152,6 +158,14 @@ export class Game {
 
   getUIManager(): UIManager {
     return this.uiManager
+  }
+
+  setBotSpawner(botSpawner: BotSpawner): void {
+    this.botSpawner = botSpawner
+  }
+
+  getBotSpawner(): BotSpawner | null {
+    return this.botSpawner
   }
 
   private hideLoadingScreen(): void {

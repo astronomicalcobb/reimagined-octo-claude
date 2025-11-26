@@ -56,12 +56,21 @@ export class Player extends Entity {
 
     this.health.events.on('respawn', () => {
       console.log('Player respawned')
+      this.dashAbility.reset()
     })
   }
 
   private setupWeaponEvents(): void {
     this.weaponManager.events.on('hit', (data) => {
-      console.log('Hit registered:', data)
+      console.log(`Player hit ${data.entityType}: ${data.entityId}`)
+    })
+  }
+
+  setBotDamageCallback(callback: (entityId: string, entityType: string, damage: number) => void): void {
+    this.weaponManager.events.on('hit', (data) => {
+      if (data.entityId && data.entityType) {
+        callback(data.entityId, data.entityType, data.damage)
+      }
     })
   }
 
@@ -99,16 +108,16 @@ export class Player extends Entity {
   }
 
   private handleDash(): void {
-    if (this.inputManager.isKeyDown('ShiftLeft') && this.dashAbility.canUse()) {
+    if (this.inputManager.isKeyDown('KeyE') && this.dashAbility.canUse()) {
       const moveDirection = new THREE.Vector3()
 
-      if (this.inputManager.isKeyDown('KeyW')) moveDirection.z -= 1
-      if (this.inputManager.isKeyDown('KeyS')) moveDirection.z += 1
+      if (this.inputManager.isKeyDown('KeyW')) moveDirection.z += 1
+      if (this.inputManager.isKeyDown('KeyS')) moveDirection.z -= 1
       if (this.inputManager.isKeyDown('KeyA')) moveDirection.x -= 1
       if (this.inputManager.isKeyDown('KeyD')) moveDirection.x += 1
 
       if (moveDirection.length() === 0) {
-        moveDirection.z = -1
+        moveDirection.z = 1
       }
 
       moveDirection.normalize()
@@ -123,21 +132,19 @@ export class Player extends Entity {
       dashDir.addScaledVector(right, moveDirection.x)
       dashDir.normalize()
 
-      const dashVelocity = this.dashAbility.use(
-        dashDir,
-        this.controller.isGrounded,
-        this.controller.velocity
-      )
+      const dashOffset = this.dashAbility.use(dashDir)
 
-      if (dashVelocity) {
-        this.controller.velocity.copy(dashVelocity)
-        console.log('Dash activated!')
+      if (dashOffset) {
+        const newPosition = this.controller.position.clone().add(dashOffset)
+        this.controller.setPosition(newPosition)
+        console.log('Dash used! Distance:', dashOffset.length())
       }
     }
   }
 
   respawn(): void {
     this.health.respawn()
+    this.dashAbility.reset()
     this.position.set(0, 2, 0)
     this.controller.setPosition(this.position)
     this.controller.velocity.set(0, 0, 0)

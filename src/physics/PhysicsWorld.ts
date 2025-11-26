@@ -6,6 +6,7 @@ export class PhysicsWorld {
   private world: RAPIER.World | null = null
   private bodies: Map<string, RAPIER.RigidBody> = new Map()
   private colliders: Map<string, RAPIER.Collider> = new Map()
+  private colliderToId: Map<RAPIER.Collider, string> = new Map()
   public events: EventEmitter = new EventEmitter()
   private initialized: boolean = false
 
@@ -90,6 +91,9 @@ export class PhysicsWorld {
 
     this.bodies.set(id, rigidBody)
     this.colliders.set(id, collider)
+    this.colliderToId.set(collider, id)
+
+    console.log(`PhysicsWorld: Added entity ${id}, collider handle: ${collider.handle}, total tracked: ${this.colliderToId.size}`)
 
     return rigidBody
   }
@@ -106,6 +110,7 @@ export class PhysicsWorld {
     }
 
     if (collider) {
+      this.colliderToId.delete(collider)
       this.colliders.delete(id)
     }
   }
@@ -116,6 +121,10 @@ export class PhysicsWorld {
 
   getCollider(id: string): RAPIER.Collider | undefined {
     return this.colliders.get(id)
+  }
+
+  getEntityIdFromCollider(collider: RAPIER.Collider): string | undefined {
+    return this.colliderToId.get(collider)
   }
 
   setBodyPosition(id: string, position: THREE.Vector3): void {
@@ -139,19 +148,42 @@ export class PhysicsWorld {
     direction: THREE.Vector3,
     maxDistance: number,
     solidOnly: boolean = true
-  ): { hit: boolean; point?: THREE.Vector3; normal?: THREE.Vector3; collider?: RAPIER.Collider; distance?: number } {
+  ): { hit: boolean; point?: THREE.Vector3; normal?: THREE.Vector3; collider?: RAPIER.Collider; distance?: number; entityId?: string } {
     if (!this.world) return { hit: false }
 
     const ray = new RAPIER.Ray(origin, direction)
     const hit = this.world.castRay(ray, maxDistance, solidOnly)
 
+    // Only log weapon raycasts (longer range) to reduce spam
+    const isWeaponRaycast = maxDistance > 10
+    if (isWeaponRaycast) {
+      console.log(`[WEAPON RAYCAST] range=${maxDistance}, hit=${!!hit}, toi=${hit?.toi}, collider=${hit?.collider?.handle}`)
+    }
+
     if (hit) {
-      const hitPoint = ray.pointAt(hit.timeOfImpact)
-      const result: { hit: boolean; point?: THREE.Vector3; normal?: THREE.Vector3; collider?: RAPIER.Collider; distance?: number } = {
+      // Rapier uses 'toi' (time of impact), not 'timeOfImpact'
+      const timeOfImpact = hit.toi
+
+      if (timeOfImpact === undefined || timeOfImpact === null) {
+        if (isWeaponRaycast) {
+          console.warn('Hit detected but toi is undefined/null:', hit)
+        }
+        return { hit: false }
+      }
+
+      const hitPoint = ray.pointAt(timeOfImpact)
+      const entityId = this.colliderToId.get(hit.collider)
+
+      if (isWeaponRaycast) {
+        console.log(`[WEAPON HIT] ✓ entityId=${entityId}, type=${entityId?.split('-')[0]}, distance=${timeOfImpact.toFixed(2)}`)
+      }
+
+      const result: { hit: boolean; point?: THREE.Vector3; normal?: THREE.Vector3; collider?: RAPIER.Collider; distance?: number; entityId?: string } = {
         hit: true,
         point: new THREE.Vector3(hitPoint.x, hitPoint.y, hitPoint.z),
         collider: hit.collider,
-        distance: hit.timeOfImpact
+        distance: timeOfImpact,
+        entityId: entityId
       }
 
       if (hit.normal) {
@@ -171,5 +203,6 @@ export class PhysicsWorld {
     }
     this.bodies.clear()
     this.colliders.clear()
+    this.colliderToId.clear()
   }
 }

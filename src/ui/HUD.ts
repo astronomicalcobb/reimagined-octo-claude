@@ -38,11 +38,11 @@ export class HUD {
 
         <!-- Dash Ability (Bottom Center) -->
         <div style="position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); text-align: center;">
-          <div style="color: white; margin-bottom: 5px; font-size: 14px;">DASH</div>
+          <div style="color: white; margin-bottom: 5px; font-size: 14px;">DASH (One Use)</div>
           <div style="position: relative; width: 60px; height: 60px; margin: 0 auto;">
             <div style="position: absolute; width: 100%; height: 100%; border-radius: 50%; background: rgba(0,0,0,0.5); border: 3px solid rgba(255,255,255,0.3);"></div>
-            <div id="dash-cooldown-fill" style="position: absolute; width: 100%; height: 100%; border-radius: 50%; background: conic-gradient(#00ff00 0deg, transparent 0deg); transition: background 0.1s;"></div>
-            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 14px; font-weight: bold;">SHIFT</div>
+            <div id="dash-cooldown-fill" style="position: absolute; width: 100%; height: 100%; border-radius: 50%; background: #00ff00; transition: background 0.3s;"></div>
+            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 18px; font-weight: bold;">E</div>
           </div>
         </div>
 
@@ -116,13 +116,13 @@ export class HUD {
     if (!this.player || !this.dashCooldownFill) return
 
     const dashAbility = this.player.dashAbility
-    const percentage = dashAbility.getCooldownPercentage()
-    const degrees = (percentage / 100) * 360
 
     if (dashAbility.canUse()) {
-      this.dashCooldownFill.style.background = `conic-gradient(#00ff00 ${degrees}deg, rgba(0,255,0,0.3) ${degrees}deg)`
+      this.dashCooldownFill.style.background = '#00ff00'
+      this.dashCooldownFill.style.opacity = '1'
     } else {
-      this.dashCooldownFill.style.background = `conic-gradient(#666666 ${degrees}deg, rgba(100,100,100,0.3) ${degrees}deg)`
+      this.dashCooldownFill.style.background = '#333333'
+      this.dashCooldownFill.style.opacity = '0.5'
     }
   }
 
