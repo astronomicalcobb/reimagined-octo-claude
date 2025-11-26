@@ -1,0 +1,24 @@
+{
+  "name": "reimagined-octo-claude",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "3D First-Person Shooter Browser Game - Mix between UberStrike and Valorant",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@dimforge/rapier3d-compat": "^0.12.0",
+    "howler": "^2.2.4",
+    "three": "^0.160.0"
+  },
+  "devDependencies": {
+    "@types/howler": "^2.2.11",
+    "@types/node": "^24.10.1",
+    "@types/three": "^0.160.0",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.0"
+  }
+}

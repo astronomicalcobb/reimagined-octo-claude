@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(echo:*)",
+      "Bash(bash C:UsersDDStudent.L500343.claudestatusline-command.sh)",
+      "Bash(choco --version:*)",
+      "Bash(scoop:*)",
+      "Bash(choco install:*)",
+      "Bash(bash:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run dev:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
